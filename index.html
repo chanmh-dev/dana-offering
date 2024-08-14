@@ -22,65 +22,67 @@
         }
 
         #scroll-container {
-            white-space: nowrap;
-            overflow: hidden;
             position: absolute;
-            bottom: 10%;
+            bottom: 5%;
+            width: 100vw;
+            height: 300px;
+            overflow: hidden;
             display: flex;
             align-items: center;
-            right: 0;
-            animation: scroll linear infinite;
+        }
+
+        .scroll-content {
+            display: flex;
+            height: 100%;
+            align-items: center;
+            white-space: nowrap;
+            position: absolute;
         }
 
         .name-group {
             display: inline-block;
-            margin-right: 50px; /* Space between groups */
+            margin-right: 50px;
             font-size: 36px;
+            font-weight: bold;
             color: black;
             text-align: center;
-            font-weight: bold;
+            height: 100%;
+            box-sizing: border-box;
         }
 
         .name {
             display: block;
-            margin-bottom: 20px; /* Space between names */
-        }
-
-        @keyframes scroll {
-            0% {
-                transform: translateX(100%); /* Start from the extreme right */
-            }
-            100% {
-                transform: translateX(-100%); /* End at the extreme left */
-            }
-        }
-
-        #scroll-container {
-            animation: scroll linear infinite;
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
-    <div id="scroll-container"></div>
+    <div id="scroll-container">
+        <div class="scroll-content"></div>
+    </div>
 
     <script>
         async function fetchNames() {
-            const response = await fetch('names.txt');
-            const text = await response.text();
-            return text.split('\n').map(name => name.trim()).filter(name => name !== '');
+            try {
+                const response = await fetch('names.txt');
+                if (!response.ok) throw new Error('Network response was not ok');
+                const text = await response.text();
+                return text.split('\n').map(name => name.trim()).filter(name => name !== '');
+            } catch (error) {
+                console.error('Error fetching names:', error);
+                return [];
+            }
         }
 
-        async function displayNames() {
-            const names = await fetchNames();
-            const scrollContainer = document.getElementById('scroll-container');
-
-            // Group names in sets of 4
+        function createNameGroups(names) {
             const nameGroups = [];
-            for (let i = 0; i < names.length; i += 4) {
+            const rows = 4
+
+            for (let i = 0; i < names.length; i += rows) {
                 const groupElement = document.createElement('div');
                 groupElement.classList.add('name-group');
 
-                for (let j = 0; j < 4; j++) {
+                for (let j = 0; j < rows; j++) {
                     if (names[i + j]) {
                         const nameElement = document.createElement('div');
                         nameElement.classList.add('name');
@@ -92,22 +94,35 @@
                 nameGroups.push(groupElement);
             }
 
-            // Increase duplicate count for seamless scrolling
-            const duplicateCount = 6000; // Ensure enough content for seamless scrolling
-            for (let i = 0; i < duplicateCount; i++) {
-                nameGroups.forEach(group => scrollContainer.appendChild(group.cloneNode(true)));
-            }
-
-            // Ensure the container width is accurate
-            const containerWidth = window.innerWidth;
-            const contentWidth = scrollContainer.scrollWidth;
-
-            // Calculate animation duration based on content width and container width
-            const scrollDuration = (contentWidth / containerWidth) * 120; // 60 seconds for full scroll
-            scrollContainer.style.animationDuration = `${scrollDuration}s`;
+            return nameGroups;
         }
 
-        displayNames();
+        async function startScrolling() {
+            const names = await fetchNames();
+            const scrollContent = document.querySelector('.scroll-content');
+            const nameGroups = createNameGroups(names);
+
+            nameGroups.forEach(group => {
+                scrollContent.appendChild(group.cloneNode(true));
+            });
+
+            // Calculate initial scroll position to start from the extreme right
+            let scrollPos = window.innerWidth;
+            const speed = 0.5; // Adjust this value for scrolling speed
+
+            function scroll() {
+                scrollPos -= speed;
+                if (scrollPos <= -scrollContent.scrollWidth) {
+                    scrollPos = window.innerWidth; // Reset to the right side of the screen
+                }
+                scrollContent.style.transform = `translateX(${scrollPos}px)`;
+                requestAnimationFrame(scroll);
+            }
+
+            scroll();
+        }
+
+        startScrolling();
     </script>
 </body>
 </html>
