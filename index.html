@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seamless Scrolling Names</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: black;
+            background-image: url('dana.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        #scroll-container {
+            white-space: nowrap;
+            overflow: hidden;
+            position: absolute;
+            bottom: 10%;
+            display: flex;
+            align-items: center;
+            right: 0;
+            animation: scroll linear infinite;
+        }
+
+        .name-group {
+            display: inline-block;
+            margin-right: 50px; /* Space between groups */
+            font-size: 36px;
+            color: black;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .name {
+            display: block;
+            margin-bottom: 20px; /* Space between names */
+        }
+
+        @keyframes scroll {
+            0% {
+                transform: translateX(100%); /* Start from the extreme right */
+            }
+            100% {
+                transform: translateX(-100%); /* End at the extreme left */
+            }
+        }
+
+        #scroll-container {
+            animation: scroll linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <div id="scroll-container"></div>
+
+    <script>
+        async function fetchNames() {
+            const response = await fetch('names.txt');
+            const text = await response.text();
+            return text.split('\n').map(name => name.trim()).filter(name => name !== '');
+        }
+
+        async function displayNames() {
+            const names = await fetchNames();
+            const scrollContainer = document.getElementById('scroll-container');
+
+            // Group names in sets of 4
+            const nameGroups = [];
+            for (let i = 0; i < names.length; i += 4) {
+                const groupElement = document.createElement('div');
+                groupElement.classList.add('name-group');
+
+                for (let j = 0; j < 4; j++) {
+                    if (names[i + j]) {
+                        const nameElement = document.createElement('div');
+                        nameElement.classList.add('name');
+                        nameElement.textContent = names[i + j];
+                        groupElement.appendChild(nameElement);
+                    }
+                }
+
+                nameGroups.push(groupElement);
+            }
+
+            // Increase duplicate count for seamless scrolling
+            const duplicateCount = 6000; // Ensure enough content for seamless scrolling
+            for (let i = 0; i < duplicateCount; i++) {
+                nameGroups.forEach(group => scrollContainer.appendChild(group.cloneNode(true)));
+            }
+
+            // Ensure the container width is accurate
+            const containerWidth = window.innerWidth;
+            const contentWidth = scrollContainer.scrollWidth;
+
+            // Calculate animation duration based on content width and container width
+            const scrollDuration = (contentWidth / containerWidth) * 120; // 60 seconds for full scroll
+            scrollContainer.style.animationDuration = `${scrollDuration}s`;
+        }
+
+        displayNames();
+    </script>
+</body>
+</html>
