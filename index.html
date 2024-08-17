@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scrolling Names with Bootstrap</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #FFF8DC; /* Pastel Yellow */
+            height: 100vh;
+            font-family: 'Noto Serif SC', sans-serif; /* Chinese font for entire body */
+        }
+        .image-row {
+            height: 33.33vh; /* A third of the view area */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .names-row {
+            height: 66.66vh; /* Remaining two-thirds */
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            overflow: hidden;
+        }
+        .marquee {
+            width: 100%;
+            text-align: center;
+            font-size: 48px;
+            font-weight: bold;
+            font-family: 'Noto Serif SC', sans-serif; /* Using Google Font for Chinese characters */
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <!-- Row with Image -->
+    <div class="row image-row">
+        <div class="col-12 d-flex justify-content-center">
+            <img src="dana.png" alt="Your Image" class="img-fluid">
+        </div>
+    </div>
+
+    <!-- Row with Scrolling Names -->
+    <div class="row names-row">
+        <div class="col-1"></div> <!-- Optional padding for symmetrical spacing -->
+        <div class="col-10 d-flex justify-content-between">
+            <div class="col marquee" id="col1"></div>
+            <div class="col marquee" id="col2"></div>
+            <div class="col marquee" id="col3"></div>
+            <div class="col marquee" id="col4"></div>
+            <div class="col marquee" id="col5"></div>
+            <div class="col marquee" id="col6"></div>
+        </div>
+        <div class="col-1"></div> <!-- Optional padding for symmetrical spacing -->
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+<script>
+    // Function to read CSV and fill columns
+    function loadNames() {
+        Papa.parse('names.csv', {
+            download: true,
+            complete: function(results) {
+                const data = results.data;
+                const maxColumns = 6; // Maximum number of columns
+
+                for (let i = 0; i < data.length; i++) {
+                    for (let j = 0; j < maxColumns; j++) {
+                        let name = document.createElement('div');
+
+                        // If the current column has a name, use it. Otherwise, insert a line break.
+                        name.innerHTML = data[i][j] ? data[i][j] : '<br>';
+
+                        // Append the name to the respective column
+                        document.getElementById('col' + (j + 1)).appendChild(name);
+                    }
+                }
+                startScrolling();
+            }
+        });
+    }
+
+    // Function to start scrolling
+    function startScrolling() {
+        document.querySelectorAll('.marquee').forEach(function(marquee) {
+            marquee.innerHTML = `<marquee behavior="scroll" direction="up" scrollamount="1" height="600em">${marquee.innerHTML}</marquee>`;
+        });
+    }
+
+    // Load names after document is ready
+    $(document).ready(function() {
+        loadNames();
+    });
+</script>
+
+</body>
+</html>
